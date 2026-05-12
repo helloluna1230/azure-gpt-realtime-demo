@@ -152,11 +152,11 @@ python .\realtime_whisper_mic_webrtc.py `
 # 中→英,带音频
 python .\realtime_translate_mic_console.py --target-language en --play-audio --debug-events
 
-# 英→中,语义 VAD + 源语热词
+# 英→中,语义 VAD + 更低首音延迟
 python .\realtime_translate_mic_console.py `
   --target-language zh `
   --turn-detection semantic_vad --vad-eagerness low `
-  --prompt "This talk covers Azure, Microsoft Foundry, Kubernetes, AKS, Cosmos DB, Realtime API." `
+  --chunk-ms 40 `
   --play-audio
 ```
 
