@@ -1,0 +1,7 @@
+.env
+.venv/
+.pytest_cache/
+__pycache__/
+*.pyc
+realtime_translate_mic_webrtc.py
+tests/
