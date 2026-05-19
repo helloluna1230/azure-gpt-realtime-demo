@@ -5,3 +5,4 @@ __pycache__/
 *.pyc
 realtime_translate_mic_webrtc.py
 tests/
+realtime_2_mic_webrtc.py

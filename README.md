@@ -1,11 +1,12 @@
 # gpt-realtime
 
-Azure OpenAI Realtime API 示例：将麦克风音频实时送往 Whisper 转写与翻译模型，分别基于 WebSocket 和 WebRTC 两种通道。
+Azure OpenAI Realtime API 示例：将麦克风音频实时送往 GPT Realtime 2、Whisper 转写与翻译模型，分别基于 WebSocket 和 WebRTC 两种通道。
 
 ## 脚本一览
 
 | 脚本 | 通道 | 模型 | 功能 |
 |---|---|---|---|
+| `realtime_2_mic_console.py` | WebSocket `/realtime` | `gpt-realtime-2` | 语音进、语音/文本出的实时语音助手 |
 | `realtime_whisper_mic_console.py` | WebSocket `/realtime` | `gpt-realtime-whisper` | 同语言转写（不翻译） |
 | `realtime_whisper_mic_webrtc.py` | WebRTC `/realtime/calls` | `gpt-realtime-whisper` | 通过 WebRTC 做同语言转写 |
 | `realtime_translate_mic_console.py` | WebSocket `/realtime/translations` | `gpt-realtime-translate` | 将麦克风语音翻译为目标语言（文本 + 音频） |
@@ -28,11 +29,48 @@ pip install -r requirements.txt
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com/openai/v1
 AZURE_OPENAI_API_KEY=<your-key>
 
+AZURE_OPENAI_REALTIME_2_DEPLOYMENT=gpt-realtime-2
+# 可选：启用 realtime_2_mic_console.py 的 [YOU] 用户语音转写输出
+# AZURE_OPENAI_REALTIME_INPUT_TRANSCRIPTION_DEPLOYMENT=gpt-realtime-whisper
 AZURE_OPENAI_TRANSLATE_DEPLOYMENT=gpt-realtime-translate
 AZURE_OPENAI_WHISPER_DEPLOYMENT=gpt-realtime-whisper
 ```
 
 `AZURE_OPENAI_ENDPOINT` 可以是 `https://<resource>.openai.azure.com`、`.../openai` 或 `.../openai/v1`，脚本会自动补全。
+
+## GPT Realtime 2 语音助手 — WebSocket
+
+推荐执行方式：
+
+```powershell
+python .\realtime_2_mic_console.py --play-audio --debug-events
+```
+
+对着麦克风说话，`gpt-realtime-2` 会直接理解语音并生成语音回答；控制台会同时打印助手回答的 transcript。按 Ctrl+C 停止。
+
+如果你主要做中文对话，并希望让模型使用更高推理强度：
+
+```powershell
+python .\realtime_2_mic_console.py --debug-events --play-audio --language zh --reasoning-effort high
+```
+
+如果你只想先验证连接、不播放声音：
+
+```powershell
+python .\realtime_2_mic_console.py --no-play-audio --debug-events --duration 30
+```
+
+常用参数：
+
+- `--model gpt-realtime-2`：Azure 部署名；也可以放在 `.env` 的 `AZURE_OPENAI_REALTIME_2_DEPLOYMENT`。
+- `--voice marin|cedar|alloy|...`：语音音色，默认 `marin`。
+- `--instructions "请用中文简短回答"`：设置语音助手人设/回答风格。
+- `--reasoning-effort low|medium|high|none`：Realtime 2 推理强度，默认 `low`，延迟敏感场景可先从 `low` 开始。
+- `--output-modalities audio|text|audio,text`：默认 `audio`；即使只要控制台文字，也可以用 `--no-play-audio` 关闭播放。
+- `--input-transcription-model gpt-realtime-whisper`：可选；启用后控制台会额外打印 `[YOU] ...` 用户语音转写。
+- `--language zh` / `--input-language zh`：用户语音转写的语种提示；只有启用 `--input-transcription-model` 或 `.env` 中的 `AZURE_OPENAI_REALTIME_INPUT_TRANSCRIPTION_DEPLOYMENT` 时才会随 session 发送。
+- `--turn-detection semantic_vad`（默认） | `server_vad`：服务端自动判断说话结束并生成回复。
+- `--duration 30`：运行 N 秒后自动停止。
 
 ## Whisper 转写 — WebSocket
 
